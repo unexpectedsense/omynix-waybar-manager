@@ -74,9 +74,9 @@ fn main() -> Result<()> {
 }
 
 fn check_configuration() -> Result<()> {
-    println!("{}", "╔════════════════════════════════════════════════════════════╗".cyan());
-    println!("{}", "║  Checking configuration                                    ║".cyan());
-    println!("{}", "╚════════════════════════════════════════════════════════════╝".cyan());
+
+    println!("{}", "─────────────────────────────────".cyan());
+    println!("{}", "  Checking configuration         ".cyan());
     println!();
 
     let mut cfg = config::load_config()?;
@@ -114,9 +114,8 @@ fn check_configuration() -> Result<()> {
     let needs_update = !monitor::lists_match(&cfg.display.available_monitors, &connected);
     
     if needs_update {
-        println!("{}", "╔════════════════════════════════════════════════════════════╗".yellow());
-        println!("{}", "║  ⚠  Differences were detected                              ║".yellow());
-        println!("{}", "╚════════════════════════════════════════════════════════════╝".yellow());
+        println!("{}", "─────────────────────────────────".yellow());
+        println!("{}", "║  ⚠  Differences were detected  ".yellow());
         println!();
         
         if ask_update_config_sync()? {
@@ -146,9 +145,8 @@ fn show_monitors() -> Result<()> {
 }
 
 fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
-    println!("{}", "╔════════════════════════════════════════════════════════════╗".green());
-    println!("{}", "║        Starting Waybar setup                               ║".green());
-    println!("{}", "╚════════════════════════════════════════════════════════════╝".green());
+    println!("{}", "─────────────────────────────────".green());
+    println!("{}", "- Starting Waybar setup ..    ".green());
     println!();
 
     // 1. Detect window manager
@@ -205,9 +203,8 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
     );
 
     if should_regenerate {
-        println!("{}", "┌─────────────────────────────────────────────────────────┐".cyan());
-        println!("{}", "│  GENERATING CONFIGURATIONS                              │".cyan());
-        println!("{}", "└─────────────────────────────────────────────────────────┘".cyan());
+        println!("{}", "─────────────────────────────────".cyan());
+        println!("{}", "GENERATING CONFIGURATIONS        ".cyan());
         println!();
 
         templates::generate_configs(&cfg, &connected, &wm, verbose)?;
@@ -225,9 +222,8 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
             println!("{} Cache updated", "✓".green());
         }
     } else {
-        println!("{}", "┌─────────────────────────────────────────────────────────┐".cyan());
-        println!("{}", "│  USING CACHE CONFIGURATIONS                             │".cyan());
-        println!("{}", "└─────────────────────────────────────────────────────────┘".cyan());
+        println!("{}", "─────────────────────────────────".cyan());
+        println!("{}", "- USING CACHE CONFIGURATIONS ..  ".cyan());
         println!();
         println!("{} The settings are now up to date, using cache.", "✓".green());
         
@@ -253,17 +249,15 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
 
     // 8. Lanzar waybar
     println!();
-    println!("{}", "┌─────────────────────────────────────────────────────────┐".cyan());
-    println!("{}", "│  INITIALIZING WAYBAR                                    │".cyan());
-    println!("{}", "└─────────────────────────────────────────────────────────┘".cyan());
+    println!("{}", "─────────────────────────────────".cyan());
+    println!("{}", "- INITIALIZING WAYBAR ..         ".cyan());
     println!();
 
     templates::launch_waybar_instances(&cfg, &connected, &wm, verbose)?;
 
     println!();
-    println!("{}", "╔════════════════════════════════════════════════════════════╗".green());
-    println!("{}", "║  ✓ Waybar started successfully                             ║".green());
-    println!("{}", "╚════════════════════════════════════════════════════════════╝".green());
+    println!("{}", "─────────────────────────────────".cyan());
+    println!("{}", "✓ Waybar started successfully    ".green());
 
 
     if needs_update {
@@ -274,9 +268,8 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
 }
 
 fn print_monitor_info(cfg: &config::Config, connected: &[String]) {
-    println!("{}", "┌─────────────────────────────────────────────────────────┐".cyan());
-    println!("{}", "│  CONFIGURED MONITORS (from TOML file)                   │".cyan());
-    println!("{}", "└─────────────────────────────────────────────────────────┘".cyan());
+    println!("{}", "─────────────────────────────────".cyan());
+    println!("{}", "- CONFIGURED MONITORS (from TOML file):".cyan());
 
     if cfg.display.available_monitors.is_empty() {
         println!("  {}", "(None configured)".yellow());
@@ -287,9 +280,8 @@ fn print_monitor_info(cfg: &config::Config, connected: &[String]) {
     }
     println!();
 
-    println!("{}", "┌─────────────────────────────────────────────────────────┐".cyan());
-    println!("{}", "│  MONITORS CONNECTED (detected by the script)            │".cyan());
-    println!("{}", "└─────────────────────────────────────────────────────────┘".cyan());
+    println!("{}", "─────────────────────────────────".cyan());
+    println!("{}", "MONITORS CONNECTED (detected by the script)".cyan());
 
     for mon in connected {
         println!("  {} {}", "●".green(), mon);
@@ -297,9 +289,8 @@ fn print_monitor_info(cfg: &config::Config, connected: &[String]) {
     println!();
 
     let matches = monitor::find_matches(&cfg.display.available_monitors, connected);
-    println!("{}", "┌─────────────────────────────────────────────────────────┐".cyan());
-    println!("{}", "│  MATCHES (monitors on both lists)                       │".cyan());
-    println!("{}", "└─────────────────────────────────────────────────────────┘".cyan());
+    println!("{}", "─────────────────────────────────".cyan());
+    println!("{}", "MATCHES (monitors on both lists) ".cyan());
 
     if matches.is_empty() {
         println!("  {} There are no coincidences.", "⚠".yellow());
@@ -315,9 +306,7 @@ fn print_monitor_info(cfg: &config::Config, connected: &[String]) {
 }
 
 fn ask_update_config() -> Result<bool> {
-    println!("{}", "╔════════════════════════════════════════════════════════════╗".yellow());
-    println!("{}", "║  Differences were detected in the monitors                 ║".yellow());
-    println!("{}", "╚════════════════════════════════════════════════════════════╝".yellow());
+    println!("{}", "Differences were detected in the monitors".yellow());
     println!();
 
     println!("{}", "¿Do you want to update the configuration with the detected monitors?".cyan());
