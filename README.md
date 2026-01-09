@@ -38,7 +38,7 @@ cp target/release/omynix-waybar-manager ~/.local/bin/
 ### 1. Initialize configuration
 
 ```bash
-waybar-manager init
+omynix-waybar-manager init
 ```
 
 This creates `~/.local/share/omynix/config.toml`:
@@ -155,7 +155,7 @@ omynix-waybar-manager monitors
 In `~/.config/hypr/hyprland.conf`:
 
 ```conf
-exec-once = waybar-manager launch
+exec-once = omynix-waybar-manager launch
 ```
 
 ### Niri
@@ -163,7 +163,7 @@ exec-once = waybar-manager launch
 In `~/.config/niri/config.kdl`:
 
 ```kdl
-spawn-at-startup "waybar-manager" "launch"
+spawn-at-startup "omynix-waybar-manager" "launch"
 ```
 
 ### Mango
@@ -219,7 +219,7 @@ Make sure to create the templates in:
 Check the logs:
 
 ```bash
-waybar-manager launch --verbose
+omynix-waybar-manager launch --verbose
 journalctl --user -u waybar -f
 ```
 
