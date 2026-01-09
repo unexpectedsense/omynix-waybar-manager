@@ -1,0 +1,68 @@
+[
+  {
+    // TPL:FULL
+    "output": "CONFIGURED_FROM_SCRIPT",
+    "ipc": true,
+    "mode": "dock",
+    "exclusive": true,
+    "start_hidden": false,
+    "reload_style_on_change": true,
+    "layer": "top",
+    "position": "top",
+    "spacing": 0,
+    "height": 26,
+    "include": [
+      "~/.config/waybar/modules/left.jsonc",
+      "~/.config/waybar/modules/center.jsonc",
+      "~/.config/waybar/modules/right.jsonc",
+      "~/.config/waybar/modules/workspaces-niri.jsonc",
+      "~/.config/waybar/modules/mega-clock-partial.jsonc",
+      "~/.config/waybar/modules/window-niri.jsonc"
+    ],
+    "modules-left": [
+      "custom/omynix",
+      "niri/workspaces",
+      "custom/walker",
+      "custom/term",
+      "custom/alarm",
+      "custom/calcure"
+    ],
+    "modules-center": [
+      "custom/days-of-week",
+      "clock",
+      "custom/mega-clock-partial",
+      "niri/window"
+    ],
+    "modules-right": [
+      "group/tray-expander",
+      "group/hardware",
+      "custom/vertical-split",
+      "group/audio",
+      "bluetooth",
+      "network",
+      "battery"
+    ]
+  },
+  {
+    // TPL:SIMPLE
+    "output": "CONFIGURED_FROM_SCRIPT",
+    "mode": "hide",
+    "hidden-state": "hide",
+    "reload_style_on_change": true,
+    "layer": "top",
+    "position": "top",
+    "spacing": 0,
+    "height": 26,
+    "include": [
+      "~/.config/waybar/modules/workspaces-niri.jsonc",
+      "~/.config/waybar/modules/mega-clock.jsonc"
+    ],
+    "modules-left": [
+      "niri/workspaces"
+    ],
+    "modules-center": [
+      "custom/mega-clock"
+    ],
+    "modules-right": []
+  }
+]

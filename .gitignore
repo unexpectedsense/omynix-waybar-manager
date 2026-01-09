@@ -1,0 +1,18 @@
+# Rust
+/target
+Cargo.lock
+
+# Editor
+.vscode/
+*.swp
+*~
+unxdev.md
+
+# Nix
+result
+result-*
+flake.lock
+
+# OS
+.DS_Store
+Thumbs.db
