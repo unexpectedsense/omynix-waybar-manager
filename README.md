@@ -195,9 +195,6 @@ cargo test
 # Watch mode (auto-recompiles)
 cargo watch -x run
 
-# Linting
-cargo clippy
-
 # Formatting
 cargo fmt
 ```

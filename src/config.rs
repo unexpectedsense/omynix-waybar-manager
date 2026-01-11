@@ -13,7 +13,7 @@ pub struct Display {
     pub preferred_monitor: String,
     pub available_monitors: Vec<String>,
     #[serde(default = "default_mode")]
-    pub mode: String,  // "single" o "multiple"
+    pub mode: String, // "single" o "multiple"
 }
 
 fn default_mode() -> String {
@@ -39,16 +39,18 @@ pub fn get_config_path() -> Result<PathBuf> {
 
 pub fn init_config() -> Result<()> {
     let config_path = get_config_path()?;
-    
+
     if config_path.exists() {
-        println!("The configuration file already exists in: {}", config_path.display());
+        println!(
+            "The configuration file already exists in: {}",
+            config_path.display()
+        );
         return Ok(());
     }
 
     // Create directory if it does not exist
     if let Some(parent) = config_path.parent() {
-        fs::create_dir_all(parent)
-            .context("The configuration directory could not be created")?;
+        fs::create_dir_all(parent).context("The configuration directory could not be created")?;
     }
 
     let default_config = Config::default();
@@ -60,29 +62,26 @@ pub fn init_config() -> Result<()> {
 
 pub fn load_config() -> Result<Config> {
     let config_path = get_config_path()?;
-    
+
     if !config_path.exists() {
         println!("No configuration file was found, creating a new one...");
         init_config()?;
     }
 
-    let contents = fs::read_to_string(&config_path)
-        .context("The configuration file could not be read")?;
-    
-    let config: Config = toml::from_str(&contents)
-        .context("Error parsing configuration file")?;
-    
+    let contents =
+        fs::read_to_string(&config_path).context("The configuration file could not be read")?;
+
+    let config: Config = toml::from_str(&contents).context("Error parsing configuration file")?;
+
     Ok(config)
 }
 
 pub fn save_config(config: &Config) -> Result<()> {
     let config_path = get_config_path()?;
-    
-    let toml_string = toml::to_string_pretty(config)
-        .context("Error serializing configuration")?;
-    
-    fs::write(&config_path, toml_string)
-        .context("Error writing configuration file")?;
-    
+
+    let toml_string = toml::to_string_pretty(config).context("Error serializing configuration")?;
+
+    fs::write(&config_path, toml_string).context("Error writing configuration file")?;
+
     Ok(())
 }

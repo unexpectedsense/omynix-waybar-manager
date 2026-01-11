@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::env;
 use std::process::Command;
 
@@ -35,7 +35,9 @@ pub fn detect_window_manager() -> Result<WindowManager> {
         return Ok(WindowManager::Niri);
     }
 
-    Err(anyhow!("No compatible window manager was detected (Hyprland, Mango, Niri)"))
+    Err(anyhow!(
+        "No compatible window manager was detected (Hyprland, Mango, Niri)"
+    ))
 }
 
 fn is_process_running(process_name: &str) -> bool {

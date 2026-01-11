@@ -5,9 +5,8 @@ use colored::*;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
-
 
 #[derive(Debug)]
 pub struct TemplateConfig {
@@ -42,23 +41,31 @@ pub fn get_templates_path(wm: &WindowManager) -> PathBuf {
         .join(format!("{}.jsonc", wm.as_str()))
 }
 
-pub fn get_generated_config_path(wm: &WindowManager, monitor: &str, template_type: &TemplateType) -> PathBuf {
+pub fn get_generated_config_path(
+    wm: &WindowManager,
+    monitor: &str,
+    template_type: &TemplateType,
+) -> PathBuf {
     let home = dirs::home_dir().unwrap();
     let type_str = match template_type {
         TemplateType::Full => "full",
         TemplateType::Simple => "simple",
         TemplateType::Custom(name) => name.as_str(),
     };
-    
-    home.join(".config/waybar/generated")
-        .join(format!("{}_{}_{}. json", wm.as_str(), monitor, type_str))
+
+    home.join(".config/waybar/generated").join(format!(
+        "{}_{}_{}. json",
+        wm.as_str(),
+        monitor,
+        type_str
+    ))
 }
 
 pub fn load_templates(wm: &WindowManager) -> Result<Vec<TemplateConfig>> {
     let template_path = get_templates_path(wm);
-    
+
     println!("Looking for templates in: {}", template_path.display());
-    
+
     if !template_path.exists() {
         return Err(anyhow::anyhow!(
             "No template file was found in: {}",
@@ -66,11 +73,12 @@ pub fn load_templates(wm: &WindowManager) -> Result<Vec<TemplateConfig>> {
         ));
     }
 
-    let content = fs::read_to_string(&template_path)
-        .context("Error reading template file")?;
+    let content = fs::read_to_string(&template_path).context("Error reading template file")?;
 
-    println!("File contents (first 200 characters)):\n{}\n", 
-             &content.chars().take(200).collect::<String>());
+    println!(
+        "File contents (first 200 characters)):\n{}\n",
+        &content.chars().take(200).collect::<String>()
+    );
 
     // Parse JSONC (JSON with comments)
     let configs = parse_jsonc_templates(&content)?;
@@ -80,7 +88,7 @@ pub fn load_templates(wm: &WindowManager) -> Result<Vec<TemplateConfig>> {
 
 fn parse_jsonc_templates(content: &str) -> Result<Vec<TemplateConfig>> {
     let mut templates = Vec::new();
-    
+
     // Extract template markers
     let mut template_types_in_order = Vec::new();
     for line in content.lines() {
@@ -91,11 +99,11 @@ fn parse_jsonc_templates(content: &str) -> Result<Vec<TemplateConfig>> {
             }
         }
     }
-    
+
     // Clear comments
     let mut result = String::new();
     let mut chars = content.chars().peekable();
-    
+
     while let Some(ch) = chars.next() {
         match ch {
             '/' if chars.peek() == Some(&'/') => {
@@ -128,14 +136,13 @@ fn parse_jsonc_templates(content: &str) -> Result<Vec<TemplateConfig>> {
             }
         }
     }
-    
+
     // Parse the clean JSON
-    let json_array: Vec<Value> = serde_json::from_str(&result)
-        .context(format!(
-            "Error parsing template file.\nFirst 300 characters of clean content:\n{}",
-            &result.chars().take(300).collect::<String>()
-        ))?;
-    
+    let json_array: Vec<Value> = serde_json::from_str(&result).context(format!(
+        "Error parsing template file.\nFirst 300 characters of clean content:\n{}",
+        &result.chars().take(300).collect::<String>()
+    ))?;
+
     // Assign template types
     for (i, config) in json_array.into_iter().enumerate() {
         let template_type = if i < template_types_in_order.len() {
@@ -147,17 +154,17 @@ fn parse_jsonc_templates(content: &str) -> Result<Vec<TemplateConfig>> {
                 _ => TemplateType::Custom(format!("template_{}", i)),
             }
         };
-        
+
         templates.push(TemplateConfig {
             template_type,
             config,
         });
     }
-    
+
     if templates.is_empty() {
         return Err(anyhow::anyhow!("No valid templates were found in the file"));
     }
-    
+
     Ok(templates)
 }
 
@@ -174,9 +181,7 @@ pub fn generate_configs(
     }
 
     // Create directory of generated configs if it does not exist
-    let generated_dir = dirs::home_dir()
-        .unwrap()
-        .join(".config/waybar/generated");
+    let generated_dir = dirs::home_dir().unwrap().join(".config/waybar/generated");
     fs::create_dir_all(&generated_dir)?;
 
     // Determine which configuration to use for each monitor
@@ -262,8 +267,12 @@ pub fn launch_waybar_instances(
             println!("Implement -- launch_waybar_instances()");
         }
 
-
-        println!("  {} Starting waybar {} in: {}", "→".cyan(), type_str, monitor.cyan());
+        println!(
+            "  {} Starting waybar {} in: {}",
+            "→".cyan(),
+            type_str,
+            monitor.cyan()
+        );
 
         Command::new("waybar")
             .arg("-c")

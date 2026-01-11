@@ -20,35 +20,30 @@ pub fn get_cache_path() -> Result<PathBuf> {
 
 pub fn load_cache() -> Result<Option<CacheEntry>> {
     let cache_path = get_cache_path()?;
-    
+
     if !cache_path.exists() {
         return Ok(None);
     }
-    
-    let contents = fs::read_to_string(&cache_path)
-        .context("The cache file could not be read")?;
-    
-    let cache: CacheEntry = toml::from_str(&contents)
-        .context("Error parsing cache file")?;
-    
+
+    let contents = fs::read_to_string(&cache_path).context("The cache file could not be read")?;
+
+    let cache: CacheEntry = toml::from_str(&contents).context("Error parsing cache file")?;
+
     Ok(Some(cache))
 }
 
 pub fn save_cache(cache: &CacheEntry) -> Result<()> {
     let cache_path = get_cache_path()?;
-    
+
     // Create directory if it does not exist
     if let Some(parent) = cache_path.parent() {
-        fs::create_dir_all(parent)
-            .context("The cache directory could not be created")?;
+        fs::create_dir_all(parent).context("The cache directory could not be created")?;
     }
-    
-    let toml_string = toml::to_string_pretty(cache)
-        .context("Error serializing cache")?;
-    
-    fs::write(&cache_path, toml_string)
-        .context("Error writing cache file")?;
-    
+
+    let toml_string = toml::to_string_pretty(cache).context("Error serializing cache")?;
+
+    fs::write(&cache_path, toml_string).context("Error writing cache file")?;
+
     Ok(())
 }
 
@@ -62,7 +57,7 @@ pub fn get_current_timestamp() -> i64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
-        .as_secs() as i64 
+        .as_secs() as i64
 }
 
 pub fn should_regenerate(
@@ -76,32 +71,32 @@ pub fn should_regenerate(
     let Some(cache) = cache else {
         return true;
     };
-    
+
     // If the generated files do not exist, regenerate
     if !generated_files_exist {
         return true;
     }
-    
+
     // If the template hash changed, regenerate
     if cache.template_hash != template_hash {
         return true;
     }
-    
+
     // If you changed your preferred monitor, regenerate
     if cache.preferred_monitor != preferred_monitor {
         return true;
     }
-    
+
     // If the monitor list has changed, regenerate
     let mut cache_monitors = cache.monitors.clone();
     let mut current_monitors = monitors.to_vec();
     cache_monitors.sort();
     current_monitors.sort();
-    
+
     if cache_monitors != current_monitors {
         return true;
     }
-    
+
     // Everything matches up, not regenerating
     false
 }
@@ -110,18 +105,18 @@ pub fn check_generated_files_exist(
     monitors: &[String],
     wm: &crate::window_manager::WindowManager,
 ) -> bool {
-    use crate::templates::{get_generated_config_path, TemplateType};
-    
+    use crate::templates::{TemplateType, get_generated_config_path};
+
     // Verify that files exist for at least all monitors
     for monitor in monitors {
         // Verify at least one type (full or simple)
         let full_path = get_generated_config_path(wm, monitor, &TemplateType::Full);
         let simple_path = get_generated_config_path(wm, monitor, &TemplateType::Simple);
-        
+
         if !full_path.exists() && !simple_path.exists() {
             return false;
         }
     }
-    
+
     true
 }
