@@ -10,6 +10,8 @@ Intelligent waybar manager for multiple monitors and window managers (Hyprland, 
 - 🔄 Automatic configuration updates
 - 🎨 Single shared stylesheet
 
+![Preview](assets/screenshots/preview.png)
+
 ## Installation
 
 ### With Nix Flakes
