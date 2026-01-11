@@ -179,7 +179,7 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
     println!("{}", "- Starting Waybar setup ..    ".green());
     println!();
 
-    // 1. Detect window manager
+    // Detect window manager
     let wm = window_manager::detect_window_manager()?;
     println!(
         "{} Window manager detected: {}",
@@ -187,7 +187,7 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
         format!("{:?}", wm).cyan()
     );
 
-    // 2. Get connected monitors
+    // Get connected monitors
     let connected = monitor::get_connected_monitors(&wm)?;
     println!(
         "{} Monitors detected: {}",
@@ -196,17 +196,17 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
     );
     println!();
 
-    // 3. Load configuration
+    // Load configuration
     let mut cfg = config::load_config()?;
 
     for mon in &cfg.display.available_monitors {
         println!("--CONFIGURATION  {} {}", "◆".magenta(), mon);
     }
 
-    // 4. Show detailed information
+    // Show detailed information
     print_monitor_info(&cfg, &connected);
 
-    // 5. Check if an update is needed
+    // Check if an update is needed
     let mut needs_update = if cfg.display.mode == "single" {
         // In single mode, just verify that your preferred monitor is connected.
         !connected.contains(&cfg.display.preferred_monitor)
@@ -251,7 +251,7 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
         connected.clone()
     };
 
-    // 6. Verify cache and decide whether to regenerate
+    // Verify cache and decide whether to regenerate
     let template_path = templates::get_templates_path(&wm);
     let template_content =
         fs::read_to_string(&template_path).context("Error reading template file")?;
@@ -309,7 +309,7 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
         println!();
     }
 
-    // 7. Close existing waybar
+    // Close existing waybar
     // monitor::kill_waybar()?;
     if monitor::is_waybar_running() {
         println!("{}", "Closing existing waybar ..".yellow());
@@ -319,7 +319,7 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
         println!("{}", "continue because Waybar is not present ..".yellow());
     }
 
-    // 8. Launch waybar
+    // Launch waybar
     println!();
     println!("{}", "─────────────────────────────────".cyan());
     println!("{}", "- INITIALIZING WAYBAR ..         ".cyan());
@@ -445,7 +445,6 @@ fn ask_update_config() -> Result<bool> {
     }
 }
 
-// Version without timeout for when run manually
 fn ask_update_config_sync() -> Result<bool> {
     println!(
         "{}",
@@ -497,7 +496,7 @@ fn interactive_config() -> Result<()> {
     }
     println!();
 
-    // Preguntar modo de operación
+    // Ask about operating mode
     println!("{}", "¿How do you want to configure Waybar?".green().bold());
     println!(
         "  1. {} - Single monitor (full setup)",
