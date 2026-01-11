@@ -57,19 +57,19 @@ pub fn get_generated_config_path(wm: &WindowManager, monitor: &str, template_typ
 pub fn load_templates(wm: &WindowManager) -> Result<Vec<TemplateConfig>> {
     let template_path = get_templates_path(wm);
     
-    println!("Buscando plantillas en: {}", template_path.display());
+    println!("Looking for templates in: {}", template_path.display());
     
     if !template_path.exists() {
         return Err(anyhow::anyhow!(
-            "No se encontró archivo de plantillas en: {}",
+            "No template file was found in: {}",
             template_path.display()
         ));
     }
 
     let content = fs::read_to_string(&template_path)
-        .context("Error al leer archivo de plantillas")?;
+        .context("Error reading template file")?;
 
-    println!("Contenido del archivo (primeros 200 chars):\n{}\n", 
+    println!("File contents (first 200 characters)):\n{}\n", 
              &content.chars().take(200).collect::<String>());
 
     // Parse JSONC (JSON with comments)
@@ -253,7 +253,7 @@ pub fn launch_waybar_instances(
         let config_path = get_generated_config_path(wm, monitor, template_type);
 
         let type_str = match template_type {
-            TemplateType::Full => "COMPLETO".green(),
+            TemplateType::Full => "FULL".green(),
             TemplateType::Simple => "SIMPLE".blue(),
             TemplateType::Custom(name) => name.yellow(),
         };

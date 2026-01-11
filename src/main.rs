@@ -53,9 +53,9 @@ fn main() -> Result<()> {
 
     match cli.command {
         Some(Commands::Init) => {
-            println!("{}", "Inicializando configuración...".green().bold());
+            println!("{}", "Initializing configuration...".green().bold());
             config::init_config()?;
-            println!("{}", "✓ Configuración creada exitosamente".green());
+            println!("{}", "✓ Configuration created successfully".green());
         }
         Some(Commands::Check) => {
             check_configuration()?;
@@ -78,10 +78,11 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+
 fn check_configuration() -> Result<()> {
 
     println!("{}", "─────────────────────────────────".cyan());
-    println!("{}", "  Checking configuration         ".cyan());
+    println!("{}", "Checking configuration".cyan());
     println!();
 
     let mut cfg = config::load_config()?;
@@ -115,21 +116,45 @@ fn check_configuration() -> Result<()> {
     }
     println!();
 
+    if cfg.display.mode == "single" {
+        println!("Mode: {}", "Single Monitor".cyan());
+    } else {
+        println!("Mode: {}", "Multiple Monitors".cyan());
+    }
+
+    println!();
+
     // Check for differences and offer to synchronize
-    let needs_update = !monitor::lists_match(&cfg.display.available_monitors, &connected);
+    let needs_update = if cfg.display.mode == "single" {
+        // In single mode, just verify that your preferred monitor is connected.
+        !connected.contains(&cfg.display.preferred_monitor)
+    } else {
+        // In multiple mode, verify that the lists match.
+        !monitor::lists_match(&cfg.display.available_monitors, &connected)
+    };
+
+    
+    
     
     if needs_update {
         println!("{}", "─────────────────────────────────".yellow());
         println!("{}", "║  ⚠  Differences were detected  ".yellow());
         println!();
         
-        if ask_update_config_sync()? {
+
+        if cfg.display.mode == "single" {
+            println!("{}", "⚠ In 'single' mode, you must have the 'preferred_monitor' option configured to disable this alert. The first monitor detected will be used.".yellow());
+            println!("{}", "  Run 'omynix-waybar-manager config' to reconfigure".cyan());
+            println!();
+        } else if ask_update_config_sync()? {
             cfg.display.available_monitors = connected.clone();
             config::save_config(&cfg)?;
             println!("{} Configuration successfully synchronized\n", "✓".green());
         } else {
             println!("{} Outdated configuration\n", "⚠".yellow());
         }
+
+
     } else {
         println!("{} The configuration is synchronized\n", "✓".green());
     }
@@ -144,129 +169,6 @@ fn show_monitors() -> Result<()> {
     println!("{}", "Monitors detected:".green().bold());
     for (i, mon) in connected.iter().enumerate() {
         println!("  {}. {}", i + 1, mon.cyan());
-    }
-
-    Ok(())
-}
-
-fn launch_waybar_ori(force_update: bool, verbose: bool) -> Result<()> {
-    println!("{}", "─────────────────────────────────".green());
-    println!("{}", "- Starting Waybar setup ..    ".green());
-    println!();
-
-    // 1. Detect window manager
-    let wm = window_manager::detect_window_manager()?;
-    println!("{} Window manager detected: {}", "✓".green(), format!("{:?}", wm).cyan());
-
-    // 2. Get connected monitors
-    let connected = monitor::get_connected_monitors(&wm)?;
-    println!("{} Monitors detected: {}", "✓".green(), connected.len().to_string().cyan());
-    println!();
-
-    // 3. Load configuration
-    let mut cfg = config::load_config()?;
-
-    
-    for mon in &cfg.display.available_monitors {
-        println!("--CONFIGURATION  {} {}", "◆".magenta(), mon);
-    }
-
-    // 4. Show detailed information
-    print_monitor_info(&cfg, &connected);
-
-    // 5. Check if an update is needed
-    let mut needs_update = !monitor::lists_match(&cfg.display.available_monitors, &connected);
-
-    if needs_update {
-        if force_update || ask_update_config()? {
-            cfg.display.available_monitors = connected.clone();
-            config::save_config(&cfg)?;
-            needs_update = false;
-            println!("{} Configuration updated successfully\n", "✓".green());
-        } else {
-            println!("{} Outdated configuration\n", "⚠".yellow());
-        }
-    } else if verbose {
-        println!("{} The settings are now updated\n", "✓".green());
-    }
-
-    // 6. Verify cache and decide whether to regenerate
-    let template_path = templates::get_templates_path(&wm);
-    let template_content = fs::read_to_string(&template_path)
-        .context("Error reading template file")?;
-    let template_hash = cache::calculate_template_hash(&template_content);
-    
-    let cache_entry = cache::load_cache()?;
-    let generated_files_exist = cache::check_generated_files_exist(&connected, &wm);
-    
-    let should_regenerate = cache::should_regenerate(
-        cache_entry.as_ref(),
-        &template_hash,
-        &connected,
-        &cfg.display.preferred_monitor,
-        generated_files_exist,
-    );
-
-    if should_regenerate {
-        println!("{}", "─────────────────────────────────".cyan());
-        println!("{}", "GENERATING CONFIGURATIONS        ".cyan());
-        println!();
-
-        templates::generate_configs(&cfg, &connected, &wm, verbose)?;
-        
-        // Save cache after generating
-        let new_cache = cache::CacheEntry {
-            template_hash,
-            monitors: connected.clone(),
-            preferred_monitor: cfg.display.preferred_monitor.clone(),
-            timestamp: cache::get_current_timestamp(),
-        };
-        cache::save_cache(&new_cache)?;
-        
-        if verbose {
-            println!("{} Cache updated", "✓".green());
-        }
-    } else {
-        println!("{}", "─────────────────────────────────".cyan());
-        println!("{}", "- USING CACHE CONFIGURATIONS ..  ".cyan());
-        println!();
-        println!("{} The settings are now up to date, using cache.", "✓".green());
-        
-        if let Some(cache) = cache_entry {
-            if verbose {
-                use chrono::{DateTime, Utc, TimeZone};
-                let dt: DateTime<Utc> = Utc.timestamp_opt(cache.timestamp as i64, 0).unwrap();
-                println!("  Latest generation: {}", dt.format("%Y-%m-%d %H:%M:%S UTC"));
-            }
-        }
-        println!();
-    }
-
-    // 7. Cerrar waybar existente
-    // monitor::kill_waybar()?;
-    if monitor::is_waybar_running() {
-        println!("{}", "Closing existing waybar ..".yellow());
-        monitor::kill_waybar()?;
-        std::thread::sleep(std::time::Duration::from_millis(500));
-    }else{
-        println!("{}", "continue because Waybar is not present ..".yellow());
-    }
-
-    // 8. Lanzar waybar
-    println!();
-    println!("{}", "─────────────────────────────────".cyan());
-    println!("{}", "- INITIALIZING WAYBAR ..         ".cyan());
-    println!();
-
-    templates::launch_waybar_instances(&cfg, &connected, &wm, verbose)?;
-
-    println!();
-    println!("{}", "─────────────────────────────────".cyan());
-    println!("{}", "✓ Waybar started successfully    ".green());
-
-
-    if needs_update {
-        send_config_diff_notification()?;
     }
 
     Ok(())
@@ -299,43 +201,42 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
 
     // 5. Check if an update is needed
     let mut needs_update = if cfg.display.mode == "single" {
-        // En modo single, solo verificar que el monitor preferido esté conectado
+        // In single mode, just verify that your preferred monitor is connected.
         !connected.contains(&cfg.display.preferred_monitor)
     } else {
-        // En modo multiple, verificar que las listas coincidan
+        // In multiple mode, verify that the lists match.
         !monitor::lists_match(&cfg.display.available_monitors, &connected)
     };
 
 
     if needs_update {
         if cfg.display.mode == "single" {
-            println!("{}", "⚠ El monitor configurado no está conectado".yellow());
-            println!("{}", "  Ejecuta 'waybar-manager config' para reconfigurar".cyan());
+            println!("{}", "⚠ The configured monitor is not connected".yellow());
+            println!("{}", "  Run 'omynix-waybar-manager config' to reconfigure".cyan());
             println!();
         } else if force_update || ask_update_config()? {
             cfg.display.available_monitors = connected.clone();
             config::save_config(&cfg)?;
             needs_update = false;
-            println!("{} Configuración actualizada exitosamente\n", "✓".green());
+            println!("{} Configuration updated successfully\n", "✓".green());
         } else {
-            println!("{} Configuración no actualizada\n", "⚠".yellow());
+            println!("{} Outdated configuration\n", "⚠".yellow());
         }
     } else if verbose {
-        println!("{} La configuración ya está actualizada\n", "✓".green());
+        println!("{} The settings are now updated\n", "✓".green());
     }
 
 
-    // 6. Determinar qué monitores usar según el modo
     let monitors_to_use = if cfg.display.mode == "single" {
-        // Modo single: solo usar el monitor preferido si está conectado
+        // Single mode: Only use the preferred monitor if it is connected.
         if connected.contains(&cfg.display.preferred_monitor) {
             vec![cfg.display.preferred_monitor.clone()]
         } else {
-            println!("{}", "⚠ Monitor preferido no disponible, usando el primero detectado".yellow());
+            println!("{}", "⚠ Preferred monitor not available, using the first one detected".yellow());
             vec![connected[0].clone()]
         }
     } else {
-        // Modo multiple: usar todos los conectados
+        // Multiple mode: Use all connected devices
         connected.clone()
     };
 
@@ -394,7 +295,7 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
         println!();
     }
 
-    // 7. Cerrar waybar existente
+    // 7. Close existing waybar
     // monitor::kill_waybar()?;
     if monitor::is_waybar_running() {
         println!("{}", "Closing existing waybar ..".yellow());
@@ -404,16 +305,16 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
         println!("{}", "continue because Waybar is not present ..".yellow());
     }
 
-    // 8. Lanzar waybar
+    // 8. Launch waybar
     println!();
     println!("{}", "─────────────────────────────────".cyan());
     println!("{}", "- INITIALIZING WAYBAR ..         ".cyan());
     println!();
 
     if cfg.display.mode == "single" {
-        println!("{}", format!("Modo: {} (solo en {})", "Single Monitor".cyan(), monitors_to_use[0]).dimmed());
+        println!("{}", format!("Mode: {} (only in {})", "Single Monitor".cyan(), monitors_to_use[0]).dimmed());
     } else {
-        println!("{}", format!("Modo: {} ({} monitores)", "Multiple Monitors".cyan(), monitors_to_use.len()).dimmed());
+        println!("{}", format!("Mode: {} ({} monitors)", "Multiple Monitors".cyan(), monitors_to_use.len()).dimmed());
     }
     println!();
 
@@ -525,42 +426,41 @@ fn send_config_diff_notification() -> Result<()> {
     
     Notification::new()
         .summary("Omynix Waybar Manager")
-        .body("Hay diferencias de configuración. Ejecuta 'waybar-manager check' desde la terminal para sincronizar cambios.")
+        .body("There are configuration differences. Run 'waybar-manager check' from the terminal to synchronize changes.")
         .icon("dialog-warning")
-        .timeout(8000) // 8 segundos
+        .timeout(8000) // 8 seconds
         .show()
-        .context("Error al enviar notificación")?;
+        .context("Error sending notification")?;
     
     Ok(())
 }
 
 fn interactive_config() -> Result<()> {
-    println!("{}", "╔════════════════════════════════════════════════════════════╗".cyan());
-    println!("{}", "║        Configuración Interactiva de Monitores              ║".cyan());
-    println!("{}", "╚════════════════════════════════════════════════════════════╝".cyan());
+    println!("{}", "─────────────────────────────────".cyan());
+    println!("{}", "Interactive Monitor Configuration".cyan());
     println!();
 
-    // Detectar gestor de ventanas y monitores
+    // Detect window and monitor manager
     let wm = window_manager::detect_window_manager()?;
     let connected = monitor::get_connected_monitors(&wm)?;
     
     if connected.is_empty() {
-        println!("{}", "⚠ No se detectaron monitores conectados".red());
+        println!("{}", "⚠ No connected monitors were detected".red());
         return Ok(());
     }
 
-    println!("{}", "Monitores detectados:".yellow().bold());
+    println!("{}", "Monitors detected:".yellow().bold());
     for (i, mon) in connected.iter().enumerate() {
         println!("  {}. {}", i + 1, mon.cyan());
     }
     println!();
 
     // Preguntar modo de operación
-    println!("{}", "¿Cómo deseas configurar waybar?".green().bold());
-    println!("  1. {} - Un solo monitor (configuración completa)", "Single Monitor".cyan());
-    println!("  2. {} - Múltiples monitores (diferenciado)", "Multiple Monitors".cyan());
+    println!("{}", "¿How do you want to configure Waybar?".green().bold());
+    println!("  1. {} - Single monitor (full setup)", "Single Monitor".cyan());
+    println!("  2. {} - Multiple monitors (differentiated)", "Multiple Monitors".cyan());
     println!();
-    print!("{}", "Selecciona una opción [1/2]: ".green());
+    print!("{}", "Select an option [1/2]: ".green());
     io::stdout().flush()?;
 
     let mut mode = String::new();
@@ -571,11 +471,11 @@ fn interactive_config() -> Result<()> {
 
     match mode {
         "1" => {
-            // Modo single monitor
+            // Single monitor mode
             configure_single_monitor(&connected, &mut cfg)?;
         }
         "2" => {
-            // Modo múltiple monitors
+            // Multi-monitor mode
             configure_multiple_monitors(&connected, &mut cfg)?;
         }
         _ => {
@@ -584,39 +484,38 @@ fn interactive_config() -> Result<()> {
         }
     }
 
-    // Guardar configuración
+    // Save settings
     config::save_config(&cfg)?;
     
     println!();
-    println!("{}", "╔════════════════════════════════════════════════════════════╗".green());
-    println!("{}", "║  ✓ Configuración guardada exitosamente                     ║".green());
-    println!("{}", "╚════════════════════════════════════════════════════════════╝".green());
+    println!("{}", "─────────────────────────────────".cyan());
+    println!("{}", "✓ Configuration saved successfully".green());
     println!();
-    println!("{}", "Ejecuta 'waybar-manager launch' para aplicar los cambios.".cyan());
+    println!("{}", "Run 'waybar-manager launch' to apply the changes.".cyan());
 
     Ok(())
 }
 
 fn configure_single_monitor(connected: &[String], cfg: &mut config::Config) -> Result<()> {
     println!();
-    println!("{}", "═══ Modo: Single Monitor ═══".cyan().bold());
+    println!("{}", "═══ Mode: Single Monitor ═══".cyan().bold());
     println!();
 
     if connected.len() == 1 {
-        // Solo hay un monitor, usarlo automáticamente
+        // There's only one monitor, use it automatically
         cfg.display.preferred_monitor = connected[0].clone();
         cfg.display.available_monitors = vec![connected[0].clone()];
-        cfg.display.mode = "single".to_string();  // ← Añadir esto
+        cfg.display.mode = "single".to_string();  
         
-        println!("{}", format!("✓ Monitor seleccionado: {}", connected[0]).green());
+        println!("{}", format!("✓ Selected monitor: {}", connected[0]).green());
     } else {
-        // Múltiples monitores detectados, elegir cuál usar
-        println!("{}", "Selecciona el monitor donde deseas ejecutar waybar:".yellow());
+        // Multiple monitors detected, choose which one to use
+        println!("{}", "Select the monitor where you want to run Waybar:".yellow());
         for (i, mon) in connected.iter().enumerate() {
             println!("  {}. {}", i + 1, mon.cyan());
         }
         println!();
-        print!("{}", "Número de monitor: ".green());
+        print!("{}", "Monitor number: ".green());
         io::stdout().flush()?;
 
         let mut choice = String::new();
@@ -627,15 +526,15 @@ fn configure_single_monitor(connected: &[String], cfg: &mut config::Config) -> R
                 let selected = &connected[idx - 1];
                 cfg.display.preferred_monitor = selected.clone();
                 cfg.display.available_monitors = vec![selected.clone()];
-                cfg.display.mode = "single".to_string();  // ← Añadir esto
+                cfg.display.mode = "single".to_string();  
                 
                 println!();
-                println!("{}", format!("✓ Monitor seleccionado: {}", selected).green());
+                println!("{}", format!("✓ Selected monitor: {}", selected).green());
             } else {
-                println!("{}", "⚠ Número inválido".yellow());
+                println!("{}", "⚠ Invalid number".yellow());
             }
         } else {
-            println!("{}", "⚠ Entrada inválida".yellow());
+            println!("{}", "⚠ Invalid entry".yellow());
         }
     }
 
@@ -644,16 +543,16 @@ fn configure_single_monitor(connected: &[String], cfg: &mut config::Config) -> R
 
 fn configure_multiple_monitors(connected: &[String], cfg: &mut config::Config) -> Result<()> {
     println!();
-    println!("{}", "═══ Modo: Multiple Monitors ═══".cyan().bold());
+    println!("{}", "═══ Mode: Multiple Monitors ═══".cyan().bold());
     println!();
 
-    // Seleccionar monitor preferido (con configuración FULL)
-    println!("{}", "Selecciona el monitor PRINCIPAL (configuración completa):".yellow().bold());
+    // Select preferred monitor (with FULL settings)
+    println!("{}", "Select the MAIN monitor (full setup):".yellow().bold());
     for (i, mon) in connected.iter().enumerate() {
         println!("  {}. {}", i + 1, mon.cyan());
     }
     println!();
-    print!("{}", "Número de monitor principal: ".green());
+    print!("{}", "Main monitor number: ".green());
     io::stdout().flush()?;
 
     let mut choice = String::new();
@@ -663,34 +562,34 @@ fn configure_multiple_monitors(connected: &[String], cfg: &mut config::Config) -
         if idx > 0 && idx <= connected.len() {
             idx - 1
         } else {
-            println!("{}", "⚠ Número inválido, usando el primero".yellow());
+            println!("{}", "⚠ Invalid number, using the first one".yellow());
             0
         }
     } else {
-        println!("{}", "⚠ Entrada inválida, usando el primero".yellow());
+        println!("{}", "⚠ Invalid input, using the first".yellow());
         0
     };
 
     cfg.display.preferred_monitor = connected[preferred_idx].clone();
-    cfg.display.mode = "multiple".to_string();  // ← Añadir esto
+    cfg.display.mode = "multiple".to_string(); 
     
     println!();
-    println!("{}", format!("✓ Monitor principal: {}", connected[preferred_idx]).green());
+    println!("{}", format!("✓ Preferred monitor: {}", connected[preferred_idx]).green());
     println!();
 
-    // Seleccionar monitores adicionales (con configuración SIMPLE)
-    println!("{}", "Selecciona monitores SECUNDARIOS (configuración simple):".yellow().bold());
-    println!("{}", "Marca los monitores que deseas incluir (separados por comas)".dimmed());
+    // Select additional monitors (with SIMPLE setup)
+    println!("{}", "Select SECONDARY monitors (simple setup):".yellow().bold());
+    println!("{}", "Select the monitors you wish to include (separated by commas)".dimmed());
     
     for (i, mon) in connected.iter().enumerate() {
         if i == preferred_idx {
-            println!("  {}. {} {}", i + 1, mon.cyan(), "(principal)".dimmed());
+            println!("  {}. {} {}", i + 1, mon.cyan(), "(main)".dimmed());
         } else {
             println!("  {}. {}", i + 1, mon);
         }
     }
     println!();
-    print!("{}", "Números de monitores (ej: 1,2,3) o ENTER para todos: ".green());
+    print!("{}", "Monitor numbers (ex: 1,2,3) or ENTER for all: ".green());
     io::stdout().flush()?;
 
     let mut selection = String::new();
@@ -698,14 +597,14 @@ fn configure_multiple_monitors(connected: &[String], cfg: &mut config::Config) -
     let selection = selection.trim();
 
     if selection.is_empty() {
-        // Usar todos los monitores
+        // Use all monitors
         cfg.display.available_monitors = connected.to_vec();
         println!();
-        println!("{}", "✓ Usando todos los monitores detectados".green());
+        println!("{}", "✓ Using all detected monitors".green());
     } else {
-        // Parsear selección
+        // Parse selection
         let mut selected = Vec::new();
-        selected.push(connected[preferred_idx].clone()); // Siempre incluir el principal
+        selected.push(connected[preferred_idx].clone()); // Always include the main one
 
         for num_str in selection.split(',') {
             if let Ok(idx) = num_str.trim().parse::<usize>() {
@@ -721,12 +620,12 @@ fn configure_multiple_monitors(connected: &[String], cfg: &mut config::Config) -
         cfg.display.available_monitors = selected.clone();
         
         println!();
-        println!("{}", "✓ Monitores seleccionados:".green());
+        println!("{}", "✓ Selected monitors:".green());
         for mon in &selected {
             if mon == &cfg.display.preferred_monitor {
-                println!("  • {} {}", mon.cyan(), "(principal - FULL)".green());
+                println!("  • {} {}", mon.cyan(), "(main - FULL)".green());
             } else {
-                println!("  • {} {}", mon, "(secundario - SIMPLE)".dimmed());
+                println!("  • {} {}", mon, "(secondary - SIMPLE)".dimmed());
             }
         }
     }
