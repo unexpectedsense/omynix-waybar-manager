@@ -1,12 +1,13 @@
 # Rust
 /target
+unxdev.md
+TODO.md
+tarball/
 
 # Editor
 .vscode/
 *.swp
 *~
-unxdev.md
-TODO.md
 
 # Nix
 result
