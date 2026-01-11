@@ -142,7 +142,7 @@ omynix-waybar-manager monitors
 │   └── niri_HDMI-A-1_simple.json
 └── omynix_style.css        # Shared styles
 
-~/.local/share/omynix/
+~/.local/share/omynix/waybar-manager/
 └── config.toml             # Main configuration
 ```
 
