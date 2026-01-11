@@ -34,7 +34,7 @@ impl Default for Config {
 
 pub fn get_config_path() -> Result<PathBuf> {
     let home = dirs::home_dir().context("The home directory could not be retrieved.")?;
-    Ok(home.join(".local/share/omynix/config.toml"))
+    Ok(home.join(".local/share/omynix/waybar-manager/config.toml"))
 }
 
 pub fn init_config() -> Result<()> {

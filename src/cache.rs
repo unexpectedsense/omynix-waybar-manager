@@ -15,7 +15,7 @@ pub struct CacheEntry {
 
 pub fn get_cache_path() -> Result<PathBuf> {
     let home = dirs::home_dir().context("The home directory could not be retrieved")?;
-    Ok(home.join(".local/share/omynix/waybar_cache.toml"))
+    Ok(home.join(".local/share/omynix/waybar-manager/waybar_cache.toml"))
 }
 
 pub fn load_cache() -> Result<Option<CacheEntry>> {
