@@ -74,9 +74,7 @@
           
           src = ./.;
           
-          cargoLock = {
-            lockFile = ./Cargo.lock;
-          };
+          cargoHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
           
           nativeBuildInputs = with pkgs; [ pkg-config ];
           buildInputs = with pkgs; [ jq ];

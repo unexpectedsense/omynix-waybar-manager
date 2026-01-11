@@ -1,12 +1,12 @@
 # Rust
 /target
-Cargo.lock
 
 # Editor
 .vscode/
 *.swp
 *~
 unxdev.md
+TODO.md
 
 # Nix
 result
