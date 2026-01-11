@@ -116,6 +116,13 @@ omynix-waybar-manager launch --force-update
 omynix-waybar-manager check
 ```
 
+### Configuration
+
+```bash
+# configure single/multiple mode & preferred monitor
+omynix-waybar-manager config
+```
+
 ### View detected monitors
 
 ```bash
