@@ -12,6 +12,12 @@ pub struct Config {
 pub struct Display {
     pub preferred_monitor: String,
     pub available_monitors: Vec<String>,
+    #[serde(default = "default_mode")]
+    pub mode: String,  // "single" o "multiple"
+}
+
+fn default_mode() -> String {
+    "multiple".to_string()
 }
 
 impl Default for Config {
@@ -20,6 +26,7 @@ impl Default for Config {
             display: Display {
                 preferred_monitor: "".to_string(),
                 available_monitors: vec![],
+                mode: "multiple".to_string(),
             },
         }
     }
