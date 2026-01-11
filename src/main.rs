@@ -96,7 +96,7 @@ fn check_configuration() -> Result<()> {
     );
     println!("  Monitors configured:");
     for mon in &cfg.display.available_monitors {
-        println!("    {} {}", "◆".magenta(), mon);
+        println!("    {} {}", "-".magenta(), mon);
     }
     println!();
 
@@ -104,7 +104,7 @@ fn check_configuration() -> Result<()> {
     println!("  Window Manager: {}", format!("{:?}", wm).green());
     println!("  Connected monitors:");
     for mon in &connected {
-        println!("    {} {}", "●".green(), mon);
+        println!("    {} {}", "-".green(), mon);
     }
     println!();
 
@@ -200,7 +200,7 @@ fn launch_waybar(force_update: bool, verbose: bool) -> Result<()> {
     let mut cfg = config::load_config()?;
 
     for mon in &cfg.display.available_monitors {
-        println!("--CONFIGURATION  {} {}", "◆".magenta(), mon);
+        println!("--CONFIGURATION  {} {}", "-".magenta(), mon);
     }
 
     // Show detailed information
@@ -369,7 +369,7 @@ fn print_monitor_info(cfg: &config::Config, connected: &[String]) {
         println!("  {}", "(None configured)".yellow());
     } else {
         for mon in &cfg.display.available_monitors {
-            println!("  {} {}", "◆".magenta(), mon);
+            println!("  {} {}", "-".magenta(), mon);
         }
     }
     println!();
@@ -378,7 +378,7 @@ fn print_monitor_info(cfg: &config::Config, connected: &[String]) {
     println!("{}", "MONITORS CONNECTED (detected by the script)".cyan());
 
     for mon in connected {
-        println!("  {} {}", "●".green(), mon);
+        println!("  {} {}", "-".green(), mon);
     }
     println!();
 
