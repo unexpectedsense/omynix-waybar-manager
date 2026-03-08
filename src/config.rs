@@ -17,7 +17,7 @@ pub struct Display {
 }
 
 fn default_mode() -> String {
-    "multiple".to_string()
+    "single".to_string()
 }
 
 impl Default for Config {
@@ -26,7 +26,7 @@ impl Default for Config {
             display: Display {
                 preferred_monitor: "".to_string(),
                 available_monitors: vec![],
-                mode: "multiple".to_string(),
+                mode: "single".to_string(),
             },
         }
     }
@@ -34,7 +34,7 @@ impl Default for Config {
 
 pub fn get_config_path() -> Result<PathBuf> {
     let home = dirs::home_dir().context("The home directory could not be retrieved.")?;
-    Ok(home.join(".local/share/omynix/waybar-manager/config.toml"))
+    Ok(home.join(".local/share/omynix/modules/waybar-manager/config.toml"))
 }
 
 pub fn init_config() -> Result<()> {

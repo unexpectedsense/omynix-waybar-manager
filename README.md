@@ -41,14 +41,25 @@ cp target/release/omynix-waybar-manager ~/.local/bin/
 
 ```bash
 omynix-waybar-manager init
+
+# or CLI interactive configuration
+omynix-waybar-manager config
 ```
 
-This creates `~/.local/share/omynix/config.toml`:
+This creates `~/.local/share/omynix/modules/waybar-manager/config.toml`:
 
 ```toml
+# defult auto-generated:
+[display]                                                                   
+  preferred_monitor = ""                                                      
+  available_monitors = []                                                     
+  mode = "single"     
+
+# example of manual customization
 [display]
-preferred_monitor = "eDP-1"
-available_monitors = ["HDMI-A-1", "eDP-1"]
+  preferred_monitor = "HDMI-A-1"
+  available_monitors = ["HDMI-A-1", "eDP-1"]
+  mode = "multiple"
 ```
 
 ### 2. Create templates
