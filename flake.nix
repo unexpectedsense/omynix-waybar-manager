@@ -74,7 +74,7 @@
           
           src = ./.;
           
-          cargoHash = "sha256-Y9tCxhB67i5IngQndbg1j2vc0TCzrj+NV55EOqx6ync=";
+          cargoHash = "sha256-D+lIeXnTgIFXmHQepdwUZFkwfjtjHWXWIudyJB0ClbQ=";
           
           nativeBuildInputs = with pkgs; [ pkg-config ];
           buildInputs = with pkgs; [ jq ];
