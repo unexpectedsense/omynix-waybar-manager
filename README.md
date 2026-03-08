@@ -114,7 +114,7 @@ touch ~/.config/waybar/omynix_style.css
 
 ```bash
 # Detect monitors, generate configs and launch waybar
-omynix-waybar-manager launch
+omynix-waybar-manager launch # or --lauch
 
 # With more information
 omynix-waybar-manager launch --verbose
@@ -126,21 +126,29 @@ omynix-waybar-manager launch --force-update
 ### Check configuration
 
 ```bash
-omynix-waybar-manager check
+omynix-waybar-manager check # or --check
 ```
 
 ### Configuration
 
 ```bash
 # configure single/multiple mode & preferred monitor
-omynix-waybar-manager config
+omynix-waybar-manager config # or --config
 ```
 
 ### View detected monitors
 
 ```bash
-omynix-waybar-manager monitors
+omynix-waybar-manager monitors # or --monitors
 ```
+
+### Help command
+
+```bash
+omynix-waybar-manager --help
+omynix-waybar-manager --launch --help
+```
+
 
 ## File structure
 

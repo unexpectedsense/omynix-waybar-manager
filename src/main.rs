@@ -29,10 +29,13 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Initialize configuration with default values
+    #[command(alias = "i", visible_alias = "--init")]
     Init,
     /// Check current configuration
+    #[command(alias = "ch", visible_alias = "--check")]
     Check,
     /// Launch waybar on detected monitors
+    #[command(alias = "l", visible_alias = "--launch")]
     Launch {
         /// Force configuration update without asking
         #[arg(short, long)]
@@ -42,9 +45,14 @@ enum Commands {
         verbose: bool,
     },
     /// Show detected monitors
+    #[command(alias = "m", visible_alias = "--monitors")]
     Monitors,
     /// Configure monitors and behavior interactively
+    #[command(alias = "c", visible_alias = "--config")]
     Config,
+    /// Show versión information
+    #[command(alias = "v", visible_alias = "--version")]
+    Version,
 }
 
 fn main() -> Result<()> {
@@ -70,6 +78,9 @@ fn main() -> Result<()> {
         }
         Some(Commands::Config) => {
             interactive_config()?;
+        }
+        Some(Commands::Version) => {
+            println!("waybar-manager v{}", env!("CARGO_PKG_VERSION"));
         }
         None => {
             // Default behavior: launch waybar
