@@ -70,11 +70,11 @@
 
         packages.default = pkgs.rustPlatform.buildRustPackage {
           pname = "omynix-waybar-manager";
-          version = "0.2.1";
+          version = "0.2.2";
           
           src = ./.;
           
-          cargoHash = "sha256-D+lIeXnTgIFXmHQepdwUZFkwfjtjHWXWIudyJB0ClbQ=";
+          cargoHash = "sha256-MFsPIR9DiMuR33QfSKBiLj68f8nOptNBwvW2O40u00Y=";
           
           nativeBuildInputs = with pkgs; [ pkg-config ];
           buildInputs = with pkgs; [ jq ];
