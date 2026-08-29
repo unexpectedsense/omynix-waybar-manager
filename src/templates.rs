@@ -6,7 +6,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 #[derive(Debug)]
 pub struct TemplateConfig {
@@ -279,6 +279,8 @@ pub fn launch_waybar_instances(
             .arg(&config_path)
             .arg("-s")
             .arg(&style_path)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
             .spawn()
             .context("Error launching waybar")?;
 
