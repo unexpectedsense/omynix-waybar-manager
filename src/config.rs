@@ -16,6 +16,17 @@ pub struct Display {
     pub mode: String, // "single" o "multiple"
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct CoreConfig {
+    display: CoreDisplay,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct CoreDisplay {
+    #[serde(default)]
+    preferred_monitor: String,
+}
+
 fn default_mode() -> String {
     "single".to_string()
 }
@@ -35,6 +46,11 @@ impl Default for Config {
 pub fn get_config_path() -> Result<PathBuf> {
     let home = dirs::home_dir().context("The home directory could not be retrieved.")?;
     Ok(home.join(".local/share/omynix/modules/waybar-manager/config.toml"))
+}
+
+pub fn get_core_config_path() -> Result<PathBuf> {
+    let home = dirs::home_dir().context("The home directory could not be retrieved.")?;
+    Ok(home.join(".local/share/omynix/core/config.toml"))
 }
 
 pub fn init_config() -> Result<()> {
@@ -71,7 +87,36 @@ pub fn load_config() -> Result<Config> {
     let contents =
         fs::read_to_string(&config_path).context("The configuration file could not be read")?;
 
-    let config: Config = toml::from_str(&contents).context("Error parsing configuration file")?;
+    let mut config: Config =
+        toml::from_str(&contents).context("Error parsing configuration file")?;
+
+    // Core suite override: if a core config exists with a preferred_monitor,
+    // it takes precedence over the local one (without modifying the local file).
+    let core_path = get_core_config_path()?;
+    if core_path.exists() {
+        let core_contents = fs::read_to_string(&core_path)
+            .context("The core configuration file could not be read")?;
+        match toml::from_str::<CoreConfig>(&core_contents) {
+            Ok(core) if !core.display.preferred_monitor.trim().is_empty() => {
+                config.display.preferred_monitor = core.display.preferred_monitor;
+                println!(
+                    "Core configuration detected, using preferred_monitor: {}",
+                    config.display.preferred_monitor
+                );
+            }
+            Ok(_) => {
+                println!(
+                    "Core configuration detected but without a preferred_monitor, keeping local value"
+                );
+            }
+            Err(e) => {
+                eprintln!(
+                    "Warning: unable to parse core configuration ({}); keeping local value",
+                    e
+                );
+            }
+        }
+    }
 
     Ok(config)
 }
