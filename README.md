@@ -142,6 +142,35 @@ omynix-waybar-manager config # or --config
 omynix-waybar-manager monitors # or --monitors
 ```
 
+### Script/dmenu flags (non-interactive)
+
+For use from scripts and launchers like walker/dmenu, without opening a terminal:
+
+```bash
+# List detected monitors, one per line (no color/decorations)
+omynix-waybar-manager --list-monitors
+
+# Set the preferred monitor (non-interactive)
+omynix-waybar-manager --set-preferred HDMI-A-1
+```
+
+The interactive commands (`config`, `check`) are unchanged and still work as-is from a terminal.
+
+### Launcher wrapper (walker/dmenu)
+
+A wrapper script is provided at `scripts/omynix-waybar-manager-dmenu.sh` to drive the tool from [walker](https://github.com/abenz1267/walker)'s dmenu mode without a terminal:
+
+```bash
+# From the repo
+scripts/omynix-waybar-manager-dmenu.sh
+
+# Or link it into your local bin
+chmod +x scripts/omynix-waybar-manager-dmenu.sh
+ln -s "$PWD/scripts/omynix-waybar-manager-dmenu.sh" ~/.local/bin/omynix-waybar-manager-dmenu
+```
+
+It shows a menu (Launch Waybar, Set Preferred Monitor, List Monitors, Version) using `walker --dmenu`, and maps the selection to the non-interactive flags. Requires `walker` and `omynix-waybar-manager` in `PATH`.
+
 ### Help command
 
 ```bash

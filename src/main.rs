@@ -47,6 +47,16 @@ enum Commands {
     /// Show detected monitors
     #[command(alias = "m", visible_alias = "--monitors")]
     Monitors,
+    /// List detected monitors, one per line (for scripts/dmenu)
+    #[command(visible_alias = "--list-monitors")]
+    ListMonitors,
+    /// Set the preferred monitor in the config
+    #[command(visible_alias = "--set-preferred")]
+    SetPreferred {
+        /// Monitor name to set as preferred
+        #[arg(value_name = "MONITOR")]
+        monitor: String,
+    },
     /// Configure monitors and behavior interactively
     #[command(alias = "c", visible_alias = "--config")]
     Config,
@@ -75,6 +85,12 @@ fn main() -> Result<()> {
         }
         Some(Commands::Monitors) => {
             show_monitors()?;
+        }
+        Some(Commands::ListMonitors) => {
+            list_monitors_plain()?;
+        }
+        Some(Commands::SetPreferred { monitor }) => {
+            set_preferred_monitor(&monitor)?;
         }
         Some(Commands::Config) => {
             interactive_config()?;
@@ -181,6 +197,28 @@ fn show_monitors() -> Result<()> {
     for (i, mon) in connected.iter().enumerate() {
         println!("  {}. {}", i + 1, mon.cyan());
     }
+
+    Ok(())
+}
+
+fn list_monitors_plain() -> Result<()> {
+    let wm = window_manager::detect_window_manager()?;
+    let connected = monitor::get_connected_monitors(&wm)?;
+
+    for mon in &connected {
+        println!("{}", mon);
+    }
+
+    Ok(())
+}
+
+fn set_preferred_monitor(monitor: &str) -> Result<()> {
+    let mut cfg = config::load_config()?;
+
+    cfg.display.preferred_monitor = monitor.to_string();
+
+    config::save_config(&cfg)?;
+    println!("Preferred monitor set to: {}", monitor);
 
     Ok(())
 }
