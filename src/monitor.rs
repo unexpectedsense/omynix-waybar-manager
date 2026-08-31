@@ -1,8 +1,19 @@
 use crate::window_manager::WindowManager;
 use anyhow::{Context, Result, anyhow};
 use regex::Regex;
+use serde::Deserialize;
 use std::collections::HashSet;
 use std::process::Command;
+
+#[derive(Debug, Deserialize)]
+struct MangoMonitors {
+    monitors: Vec<MangoMonitor>,
+}
+
+#[derive(Debug, Deserialize)]
+struct MangoMonitor {
+    name: String,
+}
 
 pub fn get_connected_monitors(wm: &WindowManager) -> Result<Vec<String>> {
     let output = match wm {
@@ -16,9 +27,9 @@ pub fn get_connected_monitors(wm: &WindowManager) -> Result<Vec<String>> {
         }
         WindowManager::Mango => {
             let output = Command::new("mmsg")
-                .arg("-g")
+                .args(["get", "all-monitors"])
                 .output()
-                .context("Error executing mmsg -g")?;
+                .context("Error executing mmsg get all-monitors")?;
 
             String::from_utf8(output.stdout).context("Error decoding mmsg output")?
         }
@@ -49,12 +60,11 @@ fn parse_monitors(wm: &WindowManager, output: &str) -> Result<Vec<String>> {
             }
         }
         WindowManager::Mango => {
-            // Search for lines containing "selmon"
-            for line in output.lines() {
-                if line.contains("selmon") {
-                    if let Some(monitor) = line.split_whitespace().next() {
-                        monitors.push(monitor.to_string());
-                    }
+            // The new mango wm exposes monitors via IPC as JSON:
+            //   mmsg get all-monitors  =>  { "monitors": [ { "name": "eDP-1", ... }, ... ] }
+            if let Ok(parsed) = serde_json::from_str::<MangoMonitors>(output) {
+                for monitor in parsed.monitors {
+                    monitors.push(monitor.name);
                 }
             }
         }
@@ -172,6 +182,21 @@ Monitor HDMI-A-1 (ID 1):
 
         let monitors = parse_monitors(&WindowManager::Hyprland, output).unwrap();
         assert_eq!(monitors, vec!["eDP-1", "HDMI-A-1"]);
+    }
+
+    #[test]
+    fn test_parse_mango_monitors() {
+        let output = r#"{"monitors":[{"name":"eDP-1","active":true,"width":1366,"height":768},{"name":"HDMI-A-1","active":false,"width":1920,"height":1080}]}"#;
+
+        let monitors = parse_monitors(&WindowManager::Mango, output).unwrap();
+        assert_eq!(monitors, vec!["eDP-1", "HDMI-A-1"]);
+    }
+
+    #[test]
+    fn test_parse_mango_monitors_empty_on_bad_json() {
+        let output = r#"not json"#;
+
+        assert!(parse_monitors(&WindowManager::Mango, output).is_err());
     }
 
     #[test]

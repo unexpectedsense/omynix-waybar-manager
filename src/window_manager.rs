@@ -25,8 +25,8 @@ pub fn detect_window_manager() -> Result<WindowManager> {
         return Ok(WindowManager::Hyprland);
     }
 
-    // Detect Mango by process
-    if is_process_running("mango") {
+    // Detect Mango by environment variable or process
+    if env::var("MANGO_INSTANCE_SIGNATURE").is_ok() || is_process_running("mango") {
         return Ok(WindowManager::Mango);
     }
 
