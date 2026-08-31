@@ -158,15 +158,15 @@ The interactive commands (`config`, `check`) are unchanged and still work as-is 
 
 ### Launcher wrapper (walker/dmenu)
 
-A wrapper script is provided at `scripts/omynix-waybar-manager-dmenu.sh` to drive the tool from [walker](https://github.com/abenz1267/walker)'s dmenu mode without a terminal:
+A wrapper script is provided at `scripts/omynix-waybar-manager-dmenu` to drive the tool from [walker](https://github.com/abenz1267/walker)'s dmenu mode without a terminal:
 
 ```bash
 # From the repo
-scripts/omynix-waybar-manager-dmenu.sh
+scripts/omynix-waybar-manager-dmenu
 
 # Or link it into your local bin
-chmod +x scripts/omynix-waybar-manager-dmenu.sh
-ln -s "$PWD/scripts/omynix-waybar-manager-dmenu.sh" ~/.local/bin/omynix-waybar-manager-dmenu
+chmod +x scripts/omynix-waybar-manager-dmenu
+ln -s "$PWD/scripts/omynix-waybar-manager-dmenu" ~/.local/bin/omynix-waybar-manager-dmenu
 ```
 
 It shows a menu (Launch Waybar, Set Preferred Monitor, List Monitors, Version) using `walker --dmenu`, and maps the selection to the non-interactive flags. Requires `walker` and `omynix-waybar-manager` in `PATH`.
