@@ -46,8 +46,7 @@
   {
     // TPL:SIMPLE
     "output": "CONFIGURED_FROM_SCRIPT",
-    "mode": "hide",
-    "hidden-state": "hide",
+    "mode": "dock",
     "reload_style_on_change": true,
     "layer": "top",
     "position": "top",
