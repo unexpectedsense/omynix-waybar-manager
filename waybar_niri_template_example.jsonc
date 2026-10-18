@@ -36,12 +36,20 @@
     "modules-right": [
       "group/tray-expander",
       "group/hardware",
+      "custom/nightlight",
       "custom/vertical-split",
       "group/audio",
       "bluetooth",
       "network",
       "battery"
-    ]
+    ],
+    "custom/nightlight": {
+      "exec": "nightlight-status",
+      "return-type": "json",
+      "signal": 8,
+      "interval": 10,
+      "on-click": "nightlight-toggle"
+    }
   },
   {
     // TPL:SIMPLE
